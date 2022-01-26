@@ -111,7 +111,9 @@ fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) {
 }
 fn handle_clear(all: &bool, top: OptionNum, tail: OptionNum) {}
 fn handle_pop(index: &u16) {}
-fn handle_delete(index: &u16) {}
+fn handle_delete(index: &u16) {
+    errors::handle_delete_error(file_io::delete_entry_from_file_by_index(index));
+}
 fn handle_yank(index: &u16) {}
 
 fn get_matches(cli: &Cli) {
@@ -169,7 +171,7 @@ mod file_io {
         Ok(())
     }
 
-    fn delete_entry_from_file_by_index(index: &u16) -> DefaultResult {
+    pub fn delete_entry_from_file_by_index(index: &u16) -> DefaultResult {
         let mut entries = get_entries_from_file()?;
         entries.remove(*index as usize);
         overwrite_entries_to_file(entries)?;
@@ -220,6 +222,9 @@ mod errors {
 
     pub fn handle_view_error(error: impl std::fmt::Debug) -> ! {
         throw_clap_err(&format!("error viewing entries: {error:?}"));
+    }
+    pub fn handle_delete_error(error: impl std::fmt::Debug) -> ! {
+        throw_clap_err(&format!("error deleting entry: {error:?}"));
     }
 
     fn throw_clap_err(error_str: &str) -> ! {
