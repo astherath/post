@@ -127,6 +127,7 @@ fn get_matches(cli: &Cli) {
 
 mod file_io {
     use super::errors;
+    use std::fmt;
     use std::io;
     type DefaultResult = io::Result<()>;
     pub fn add_entry(text: &str) -> DefaultResult {
@@ -142,7 +143,7 @@ mod file_io {
     }
 
     pub fn view_entries_from_end(range: Range) -> DefaultResult {
-        let entries = get_entries_from_file()?.entries;
+        let entries = get_entries_from_file()?;
         let print_n_to_console = |x: Vec<Entry>, num: &u16| {
             x.iter()
                 .take(*num as usize)
@@ -156,7 +157,7 @@ mod file_io {
     }
 
     pub fn view_entry_by_index(index: &u16) -> DefaultResult {
-        let entries = get_entries_from_file()?.entries;
+        let entries = get_entries_from_file()?;
         errors::check_index_bounds(index, entries.len()).unwrap();
         let entry = entries.iter().find(|x| &x.index == index).unwrap();
         print_entry_to_console(&entry);
@@ -168,27 +169,33 @@ mod file_io {
         Ok(())
     }
 
-    fn delete_entry_from_file(entry: &Entry) -> DefaultResult {}
+    fn delete_entry_from_file_by_index(index: &u16) -> DefaultResult {
+        let mut entries = get_entries_from_file()?;
+        entries.remove(*index as usize);
+        overwrite_entries_to_file(entries)?;
+        Ok(())
+    }
 
-    fn overwrite_entries_to_file(entries: Entries) -> DefaultResult {}
+    fn overwrite_entries_to_file(entries: Entries) -> DefaultResult {
+        Ok(())
+    }
 
     fn write_text_to_file(text: &str) -> DefaultResult {
         Ok(())
     }
     fn get_entries_from_file() -> io::Result<Entries> {
-        Ok(Entries::default())
+        Ok(vec![])
     }
-    struct Entries {
-        pub entries: Vec<Entry>,
-    }
-    impl Default for Entries {
-        fn default() -> Self {
-            Self { entries: vec![] }
-        }
-    }
+
+    type Entries = Vec<Entry>;
     struct Entry {
         content: String,
         index: u16,
+    }
+    impl fmt::Display for Entry {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{} | {}", self.index, self.content)
+        }
     }
 }
 
