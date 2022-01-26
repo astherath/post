@@ -1,3 +1,4 @@
+#![feature(never_type)]
 mod cli;
 mod config;
 fn main() {
