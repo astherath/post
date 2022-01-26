@@ -93,11 +93,11 @@ type OptionNum<'a> = &'a Option<u16>;
 
 fn handle_view(top: OptionNum, tail: OptionNum) {}
 
-fn handle_clear(all: OptionNum, top: OptionNum, tail: OptionNum) {}
+fn handle_clear(all: &bool, top: OptionNum, tail: OptionNum) {}
 
-fn handle_pop(index: OptionNum) {}
-fn handle_delete(index: u16) {}
-fn handle_yank(index: OptionNum) {}
+fn handle_pop(index: &u16) {}
+fn handle_delete(index: &u16) {}
+fn handle_yank(index: &u16) {}
 
 fn get_matches(cli: &Cli) {
     match &cli.command {
