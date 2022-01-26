@@ -79,5 +79,17 @@ enum Commands {
 }
 
 pub fn run_main() {
-    let _args = Cli::parse();
+    let args = Cli::parse();
+    let matches = get_matches(&args);
+}
+
+fn get_matches(cli: &Cli) {
+    match &cli.command {
+        Commands::Post { text } => {}
+        Commands::View { top, tail } => {}
+        Commands::Clear { all, top, tail } => {}
+        Commands::Pop { index } => {}
+        Commands::Yank { index } => {}
+        Commands::Delete { index } => {}
+    }
 }
