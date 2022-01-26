@@ -56,20 +56,25 @@ enum Commands {
     /// Deletes a note
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
     Delete {
-        /// Index of note to delete
+        /// Index of note to delete (if not set, deletes the latest note)
+        #[clap(required = false)]
         index: u16,
     },
     /// Deletes many notes at once
-    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    #[clap(setting(AppSettings::ArgRequiredElseHelp),
+        group(
+            ArgGroup::new("cmds")
+            .required(false)
+            .args(&["top", "tail", "all"])))]
     Clear {
         #[clap(long)]
         all: bool,
         /// Amount of notes to clear, starting from the latest note added
-        #[clap(required = false)]
-        top: u16,
+        #[clap(long, required = false)]
+        top: Option<u16>,
         /// Amount of notes to clear, starting from the oldest note added
-        #[clap(required = false)]
-        tail: u16,
+        #[clap(long, required = false)]
+        tail: Option<u16>,
     },
 }
 
