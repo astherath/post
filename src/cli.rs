@@ -168,6 +168,10 @@ mod file_io {
         Ok(())
     }
 
+    fn delete_entry_from_file(entry: &Entry) -> DefaultResult {}
+
+    fn overwrite_entries_to_file(entries: Entries) -> DefaultResult {}
+
     fn write_text_to_file(text: &str) -> DefaultResult {
         Ok(())
     }
