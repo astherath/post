@@ -83,13 +83,50 @@ pub fn run_main() {
     let matches = get_matches(&args);
 }
 
+fn handle_adding_text(text: &str) {
+    if let Err(error) = file_io::add_entry(text) {
+        errors::handle_add_entry_error(error);
+    }
+}
+
+type OptionNum<'a> = &'a Option<u16>;
+
+fn handle_view(top: OptionNum, tail: OptionNum) {}
+
+fn handle_clear(all: OptionNum, top: OptionNum, tail: OptionNum) {}
+
+fn handle_pop(index: OptionNum) {}
+fn handle_delete(index: u16) {}
+fn handle_yank(index: OptionNum) {}
+
 fn get_matches(cli: &Cli) {
     match &cli.command {
-        Commands::Post { text } => {}
-        Commands::View { top, tail } => {}
-        Commands::Clear { all, top, tail } => {}
-        Commands::Pop { index } => {}
-        Commands::Yank { index } => {}
-        Commands::Delete { index } => {}
+        Commands::Post { text } => handle_adding_text(text),
+        Commands::View { top, tail } => handle_view(top, tail),
+        Commands::Clear { all, top, tail } => handle_clear(all, top, tail),
+        Commands::Pop { index } => handle_pop(index),
+        Commands::Yank { index } => handle_yank(index),
+        Commands::Delete { index } => handle_delete(index),
+    }
+}
+
+mod file_io {
+    use std::io;
+    pub fn add_entry(text: &str) -> io::Result<()> {
+        write_text_to_file(text)?;
+        Ok(())
+    }
+    fn write_text_to_file(text: &str) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+mod errors {
+    pub fn handle_add_entry_error(error: impl std::fmt::Debug) -> ! {
+        throw_clap_err(&format!("errored out with: {error:?}"))
+    }
+
+    fn throw_clap_err(error_str: &str) -> ! {
+        panic!("{}", error_str);
     }
 }
