@@ -1,5 +1,5 @@
-use clap::{AppSettings, ArgGroup, Parser, Subcommand};
 use super::{errors, file_io};
+use clap::{AppSettings, ArgGroup, Parser, Subcommand};
 #[derive(Parser)]
 #[clap(
     name = "post",
@@ -122,4 +122,3 @@ fn get_matches(cli: &Cli) {
         Commands::Delete { index } => handle_delete(index),
     }
 }
-
