@@ -31,11 +31,12 @@ fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) -> HandleResul
         } else if let Some(num) = index {
             file_io::view_entry_by_index(num)
         } else {
-            unreachable!()
+            let default_top_value = 10;
+            file_io::view_entries_from_end(file_io::Range::Top(&default_top_value))
         }
     };
     if let Err(error) = resp {
-        errors::handle_view_error(error);
+        return Err(errors::handle_view_error(error));
     }
     Ok(())
 }
@@ -87,8 +88,9 @@ enum Commands {
         text: String,
     },
 
-    /// Views the notes in the stack
-    #[clap(setting(AppSettings::ArgRequiredElseHelp),
+    /// Views the notes in the stack (if no argument given, views the lates 10 notes)
+    #[clap(
+        setting(AppSettings::ArgRequiredElseHelp),
         group(
             ArgGroup::new("cmds")
             .required(false)

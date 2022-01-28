@@ -60,11 +60,13 @@ fn overwrite_entries_to_file(entries: Entries) -> IoResult {
     Ok(())
 }
 
-fn get_entries_from_file() -> io::Result<Entries> {
-    Ok(get_lines_from_file()?
-        .iter()
-        .map(|x| Entry::from_str(x).unwrap())
-        .collect())
+fn get_entries_from_file() -> Result<Entries, errors::ClapIoError> {
+    let mut entries = vec![];
+    for entry in get_lines_from_file()?.iter() {
+        let parse_response = Entry::from_str(entry)?;
+        entries.push(parse_response);
+    }
+    Ok(entries)
 }
 
 fn get_lines_from_file() -> io::Result<Vec<String>> {
@@ -95,7 +97,7 @@ fn create_dir_if_none_exists() -> io::Result<()> {
 
 fn get_file_path() -> PathBuf {
     let mut path = get_dir_path();
-    let filename = "";
+    let filename = "notes.txt";
     path.push(PathBuf::from(filename));
     path
 }
@@ -111,17 +113,15 @@ struct Entry {
     content: String,
 }
 impl Entry {
-    fn from_str(data: &str) -> Result<Self, errors::ClapError> {
+    fn from_str(data: &str) -> Result<Self, String> {
         let char_index_resp = data.chars().position(|c| c == '|');
         if let None = char_index_resp {
-            errors::handle_entry_from_str_error("");
+            return Err("line is not in valid format, ensure config file is correct".to_string());
         }
         let (index_str, content_str) = data.split_at(char_index_resp.unwrap());
         let index_resp = index_str.parse::<u16>();
         if let Err(reason) = index_resp {
-            return Err(errors::handle_entry_from_str_error(format!(
-                "bad index number parse: {reason:?}"
-            )));
+            return Err(format!("bad index number parse: {reason:?}"));
         };
         Ok(Self {
             index: index_resp.unwrap(),

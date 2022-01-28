@@ -24,13 +24,6 @@ pub fn check_index_bounds(index_wanted: &u16, len_of_stack: usize) -> Result<(),
     }
     Ok(())
 }
-pub fn handle_entry_from_str_error(error: impl std::fmt::Debug) -> ClapError {
-    let kind = ErrorKind::Io;
-    throw_clap_err(
-        kind,
-        &format!("error parsing data from file, check that data is valid: {error:?}"),
-    )
-}
 pub fn handle_view_error(error: impl std::fmt::Debug) -> ClapError {
     let kind = ErrorKind::Io;
     throw_clap_err(kind, &format!("error viewing entries: {error:?}"))
@@ -66,5 +59,11 @@ impl From<io::Error> for ClapIoError {
         Self {
             desc: format!("{err}"),
         }
+    }
+}
+
+impl From<String> for ClapIoError {
+    fn from(err: String) -> Self {
+        Self { desc: err }
     }
 }
