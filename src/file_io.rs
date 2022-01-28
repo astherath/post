@@ -4,8 +4,10 @@ use std::fmt;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-type DefaultResult = io::Result<()>;
-pub fn add_entry(text: &str) -> DefaultResult {
+
+type IoResult = Result<(), errors::ClapIoError>;
+
+pub fn add_entry(text: &str) -> IoResult {
     write_raw_text_to_file(text)?;
     Ok(())
 }
@@ -19,7 +21,7 @@ pub enum Range<'a> {
     Top(&'a u16),
 }
 
-pub fn view_entries_from_end(range: Range) -> DefaultResult {
+pub fn view_entries_from_end(range: Range) -> IoResult {
     let entries = get_entries_from_file()?;
     let print_n_to_console = |x: Vec<Entry>, num: &u16| {
         x.iter()
@@ -33,7 +35,7 @@ pub fn view_entries_from_end(range: Range) -> DefaultResult {
     Ok(())
 }
 
-pub fn view_entry_by_index(index: &u16) -> DefaultResult {
+pub fn view_entry_by_index(index: &u16) -> IoResult {
     let entries = get_entries_from_file()?;
     errors::check_index_bounds(index, entries.len()).unwrap();
     let entry = entries.iter().find(|x| &x.index == index).unwrap();
@@ -41,14 +43,14 @@ pub fn view_entry_by_index(index: &u16) -> DefaultResult {
     Ok(())
 }
 
-pub fn delete_entry_from_file_by_index(index: &u16) -> DefaultResult {
+pub fn delete_entry_from_file_by_index(index: &u16) -> IoResult {
     let mut entries = get_entries_from_file()?;
     entries.remove(*index as usize);
     overwrite_entries_to_file(entries)?;
     Ok(())
 }
 
-fn overwrite_entries_to_file(entries: Entries) -> DefaultResult {
+fn overwrite_entries_to_file(entries: Entries) -> IoResult {
     let all_entries_to_str = entries
         .into_iter()
         .map(|x| x.to_output_string())
@@ -74,7 +76,7 @@ fn get_lines_from_file() -> io::Result<Vec<String>> {
     Ok(lines)
 }
 
-fn write_raw_text_to_file(text: &str) -> DefaultResult {
+fn write_raw_text_to_file(text: &str) -> IoResult {
     if !check_if_file_exists() {
         create_dir_if_none_exists()?;
     }
@@ -109,20 +111,20 @@ struct Entry {
     content: String,
 }
 impl Entry {
-    fn from_str(data: &str) -> Result<Self, !> {
+    fn from_str(data: &str) -> Result<Self, errors::ClapError> {
         let char_index_resp = data.chars().position(|c| c == '|');
         if let None = char_index_resp {
             errors::handle_entry_from_str_error("");
         }
         let (index_str, content_str) = data.split_at(char_index_resp.unwrap());
-        let index = match index_str.parse::<u16>() {
-            Ok(index) => index,
-            Err(reason) => {
-                errors::handle_entry_from_str_error(format!("bad index number parse: {reason:?}"))
-            }
+        let index_resp = index_str.parse::<u16>();
+        if let Err(reason) = index_resp {
+            return Err(errors::handle_entry_from_str_error(format!(
+                "bad index number parse: {reason:?}"
+            )));
         };
         Ok(Self {
-            index,
+            index: index_resp.unwrap(),
             content: content_str.to_string(),
         })
     }

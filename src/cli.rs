@@ -1,7 +1,74 @@
+#![allow(unused_variables)]
+#![allow(dead_code)]
+
 use super::{errors, file_io};
-use clap::{AppSettings, ArgGroup, Parser, Subcommand};
+use clap::{AppSettings, ArgGroup, IntoApp, Parser, Subcommand};
+
+pub fn run_main() {
+    let args = Cli::parse();
+    if let Err(clap_error) = handle_matches(&args) {
+        let mut app = Cli::into_app();
+        clap_error.format(&mut app).exit();
+    }
+}
+
+type OptionNum<'a> = &'a Option<u16>;
+type HandleResult = Result<(), errors::ClapError>;
+
+fn handle_post(text: &str) -> HandleResult {
+    match file_io::add_entry(text) {
+        Ok(_) => Ok(()),
+        Err(error) => Err(errors::handle_add_entry_error(error)),
+    }
+}
+
+fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) -> HandleResult {
+    let resp = {
+        if let Some(num) = top {
+            file_io::view_entries_from_end(file_io::Range::Top(num))
+        } else if let Some(num) = tail {
+            file_io::view_entries_from_end(file_io::Range::Tail(num))
+        } else if let Some(num) = index {
+            file_io::view_entry_by_index(num)
+        } else {
+            unreachable!()
+        }
+    };
+    if let Err(error) = resp {
+        errors::handle_view_error(error);
+    }
+    Ok(())
+}
+fn handle_clear(all: &bool, top: OptionNum, tail: OptionNum) -> HandleResult {
+    Ok(())
+}
+fn handle_pop(index: &u16) -> HandleResult {
+    Ok(())
+}
+fn handle_delete(index: &u16) -> HandleResult {
+    match file_io::delete_entry_from_file_by_index(index) {
+        Ok(_) => Ok(()),
+        Err(error) => Err(errors::handle_delete_error(error)),
+    }
+}
+fn handle_yank(index: &u16) -> HandleResult {
+    Ok(())
+}
+
+fn handle_matches(cli: &Cli) -> HandleResult {
+    match &cli.command {
+        Commands::Post { text } => handle_post(text),
+        Commands::View { top, tail, index } => handle_view(top, tail, index),
+        Commands::Clear { all, top, tail } => handle_clear(all, top, tail),
+        Commands::Pop { index } => handle_pop(index),
+        Commands::Yank { index } => handle_yank(index),
+        Commands::Delete { index } => handle_delete(index),
+    }
+}
 #[derive(Parser)]
 #[clap(
+    author,
+    version,
     name = "post",
     about = "A simple note taking tool",
     long_about = "a simple cli to keep and move notes in/out of the clipboard"
@@ -75,50 +142,4 @@ enum Commands {
         #[clap(long, required = false)]
         tail: Option<u16>,
     },
-}
-
-pub fn run_main() {
-    let args = Cli::parse();
-    let matches = get_matches(&args);
-}
-
-type OptionNum<'a> = &'a Option<u16>;
-
-fn handle_post(text: &str) {
-    if let Err(error) = file_io::add_entry(text) {
-        errors::handle_add_entry_error(error);
-    }
-}
-fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) {
-    let resp = {
-        if let Some(num) = top {
-            file_io::view_entries_from_end(file_io::Range::Top(num))
-        } else if let Some(num) = tail {
-            file_io::view_entries_from_end(file_io::Range::Tail(num))
-        } else if let Some(num) = index {
-            file_io::view_entry_by_index(num)
-        } else {
-            unreachable!()
-        }
-    };
-    if let Err(error) = resp {
-        errors::handle_view_error(error);
-    }
-}
-fn handle_clear(all: &bool, top: OptionNum, tail: OptionNum) {}
-fn handle_pop(index: &u16) {}
-fn handle_delete(index: &u16) {
-    errors::handle_delete_error(file_io::delete_entry_from_file_by_index(index));
-}
-fn handle_yank(index: &u16) {}
-
-fn get_matches(cli: &Cli) {
-    match &cli.command {
-        Commands::Post { text } => handle_post(text),
-        Commands::View { top, tail, index } => handle_view(top, tail, index),
-        Commands::Clear { all, top, tail } => handle_clear(all, top, tail),
-        Commands::Pop { index } => handle_pop(index),
-        Commands::Yank { index } => handle_yank(index),
-        Commands::Delete { index } => handle_delete(index),
-    }
 }
