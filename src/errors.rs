@@ -33,6 +33,11 @@ pub fn handle_delete_error(error: impl std::fmt::Debug) -> ClapError {
     throw_clap_err(kind, &format!("error deleting entry: {error:?}"))
 }
 
+pub fn handle_clear_error(error: impl std::fmt::Debug) -> ClapError {
+    let kind = ErrorKind::Io;
+    throw_clap_err(kind, &format!("error clearing entries: {error:?}"))
+}
+
 fn throw_clap_err(kind: ErrorKind, error_str: &str) -> ClapError {
     Error::raw(kind, error_str)
 }

@@ -16,10 +16,10 @@ type OptionNum<'a> = &'a Option<u16>;
 type HandleResult = Result<(), errors::ClapError>;
 
 fn handle_post(text: &str) -> HandleResult {
-    match file_io::add_entry(text) {
-        Ok(_) => Ok(()),
-        Err(error) => Err(errors::handle_add_entry_error(error)),
+    if let Err(error) = file_io::add_entry(text) {
+        return Err(errors::handle_add_entry_error(error));
     }
+    Ok(())
 }
 
 fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) -> HandleResult {
@@ -31,8 +31,7 @@ fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) -> HandleResul
         } else if let Some(num) = index {
             file_io::view_entry_by_index(num)
         } else {
-            let default_top_value = 10;
-            file_io::view_entries_from_end(file_io::Range::Top(&default_top_value))
+            unreachable!();
         }
     };
     if let Err(error) = resp {
@@ -41,6 +40,20 @@ fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) -> HandleResul
     Ok(())
 }
 fn handle_clear(all: &bool, top: OptionNum, tail: OptionNum) -> HandleResult {
+    let resp = {
+        if *all {
+            file_io::clear_all_entries()
+        } else if let Some(num) = top {
+            file_io::clear_from_end(file_io::Range::Top(num))
+        } else if let Some(num) = tail {
+            file_io::clear_from_end(file_io::Range::Tail(num))
+        } else {
+            unreachable!();
+        }
+    };
+    if let Err(error) = resp {
+        return Err(errors::handle_clear_error(error));
+    }
     Ok(())
 }
 fn handle_pop(index: &u16) -> HandleResult {
@@ -130,10 +143,10 @@ enum Commands {
     },
     /// Deletes many notes at once
     #[clap(setting(AppSettings::ArgRequiredElseHelp),
-        group(
-            ArgGroup::new("cmds")
-            .required(false)
-            .args(&["top", "tail", "all"])))]
+    group(
+        ArgGroup::new("cmds")
+        .required(false)
+        .args(&["top", "tail", "all"])))]
     Clear {
         #[clap(long)]
         all: bool,

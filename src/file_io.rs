@@ -8,7 +8,9 @@ use std::path::PathBuf;
 type IoResult = Result<(), errors::ClapIoError>;
 
 pub fn add_entry(text: &str) -> IoResult {
-    write_raw_text_to_file(text)?;
+    let mut entries = get_entries_from_file()?;
+    entries.add_entry_from_str(text);
+    overwrite_entries_to_file(entries)?;
     Ok(())
 }
 
@@ -22,7 +24,7 @@ pub enum Range<'a> {
 }
 
 pub fn view_entries_from_end(range: Range) -> IoResult {
-    let entries = get_entries_from_file()?;
+    let entries = get_entries_from_file()?.0;
     let print_n_to_console = |x: Vec<Entry>, num: &u16| {
         x.iter()
             .take(*num as usize)
@@ -36,7 +38,7 @@ pub fn view_entries_from_end(range: Range) -> IoResult {
 }
 
 pub fn view_entry_by_index(index: &u16) -> IoResult {
-    let entries = get_entries_from_file()?;
+    let entries = get_entries_from_file()?.0;
     errors::check_index_bounds(index, entries.len()).unwrap();
     let entry = entries.iter().find(|x| &x.index == index).unwrap();
     print_entry_to_console(&entry);
@@ -45,17 +47,31 @@ pub fn view_entry_by_index(index: &u16) -> IoResult {
 
 pub fn delete_entry_from_file_by_index(index: &u16) -> IoResult {
     let mut entries = get_entries_from_file()?;
-    entries.remove(*index as usize);
+    entries.0.remove(*index as usize);
     overwrite_entries_to_file(entries)?;
     Ok(())
 }
 
+pub fn clear_all_entries() -> IoResult {
+    let entries = Entries::empty();
+    overwrite_entries_to_file(entries)?;
+    Ok(())
+}
+
+pub fn clear_from_end(range: Range) -> IoResult {
+    let entries = get_entries_from_file()?.0;
+    let clear_n_entries =
+        |x: Vec<Entry>, num: &u16| -> Vec<Entry> { x.into_iter().skip(*num as usize).collect() };
+    let new_entries = Entries::from_entries(match range {
+        Range::Top(num) => clear_n_entries(entries, num),
+        Range::Tail(num) => clear_n_entries(entries.into_iter().rev().collect(), num),
+    });
+    overwrite_entries_to_file(new_entries)?;
+    Ok(())
+}
+
 fn overwrite_entries_to_file(entries: Entries) -> IoResult {
-    let all_entries_to_str = entries
-        .into_iter()
-        .map(|x| x.to_output_string())
-        .collect::<Vec<String>>()
-        .join("\n");
+    let all_entries_to_str = entries.to_output_string();
     write_raw_text_to_file(&all_entries_to_str)?;
     Ok(())
 }
@@ -66,7 +82,7 @@ fn get_entries_from_file() -> Result<Entries, errors::ClapIoError> {
         let parse_response = Entry::from_str(entry)?;
         entries.push(parse_response);
     }
-    Ok(entries)
+    Ok(Entries::from_entries(entries))
 }
 
 fn get_lines_from_file() -> io::Result<Vec<String>> {
@@ -107,12 +123,36 @@ fn get_dir_path() -> PathBuf {
     PathBuf::from(shellexpand::tilde(dir_path_str).to_string())
 }
 
-type Entries = Vec<Entry>;
+struct Entries(Vec<Entry>);
+impl Entries {
+    fn from_entries(entries: Vec<Entry>) -> Self {
+        Self(entries)
+    }
+    fn add_entry_from_str(&mut self, entry_text: &str) {
+        let index = self.0.len();
+        let entry = Entry::new(index as u16, entry_text.to_string());
+        self.0.push(entry);
+    }
+    fn to_output_string(self) -> String {
+        self.0
+            .into_iter()
+            .map(|x| x.to_output_string())
+            .collect::<Vec<String>>()
+            .join("\n")
+    }
+    fn empty() -> Self {
+        Self(vec![])
+    }
+}
+
 struct Entry {
     index: u16,
     content: String,
 }
 impl Entry {
+    fn new(index: u16, content: String) -> Self {
+        Self { index, content }
+    }
     fn from_str(data: &str) -> Result<Self, String> {
         let char_index_resp = data.chars().position(|c| c == '|');
         if let None = char_index_resp {
