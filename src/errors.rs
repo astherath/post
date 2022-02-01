@@ -7,20 +7,11 @@ pub fn handle_add_entry_error(error: impl std::fmt::Debug) -> ClapError {
     throw_clap_err(kind, &format!("{error:?}"))
 }
 
-pub fn handle_index_too_large_error(index: &u16, max_index: &u16) -> ClapError {
-    let kind = ErrorKind::InvalidValue;
-    throw_clap_err(
-        kind,
-        &format!(
-            "requested index too large for stack, wanted: {index} but max is: {}.",
-            max_index - 1
-        ),
-    )
-}
-
-pub fn check_index_bounds(index_wanted: &u16, len_of_stack: usize) -> Result<(), ClapError> {
+pub fn check_index_bounds(index_wanted: &u16, len_of_stack: usize) -> Result<(), String> {
     if index_wanted >= &(len_of_stack as u16) {
-        handle_index_too_large_error(index_wanted, &(len_of_stack as u16));
+        return Err(format!(
+            "index {index_wanted} is outside of bounds of notes available ({len_of_stack})."
+        ));
     }
     Ok(())
 }

@@ -1,15 +1,14 @@
 use super::errors;
 use shellexpand;
-use std::fmt;
-use std::fs;
-use std::io;
 use std::path::PathBuf;
+use std::{fmt, fs, io, os};
 
 type IoResult = Result<(), errors::ClapIoError>;
 
 pub fn add_entry(text: &str) -> IoResult {
     let mut entries = get_entries_from_file()?;
     entries.add_entry_from_str(text);
+    println!("added note to position \"{}\"", entries.0.len());
     overwrite_entries_to_file(entries)?;
     Ok(())
 }
@@ -23,8 +22,17 @@ pub enum Range<'a> {
     Top(&'a u16),
 }
 
+fn print_no_notes_msg() {
+    println!("(no notes to view! add one first with \"post\")");
+}
+
 pub fn view_entries_from_end(range: Range) -> IoResult {
     let entries = get_entries_from_file()?.0;
+    if entries.is_empty() {
+        print_no_notes_msg();
+        return Ok(());
+    }
+
     let print_n_to_console = |x: Vec<Entry>, num: &u16| {
         x.iter()
             .take(*num as usize)
@@ -39,7 +47,7 @@ pub fn view_entries_from_end(range: Range) -> IoResult {
 
 pub fn view_entry_by_index(index: &u16) -> IoResult {
     let entries = get_entries_from_file()?.0;
-    errors::check_index_bounds(index, entries.len()).unwrap();
+    errors::check_index_bounds(index, entries.len())?;
     let entry = entries.iter().find(|x| &x.index == index).unwrap();
     print_entry_to_console(&entry);
     Ok(())
@@ -47,12 +55,23 @@ pub fn view_entry_by_index(index: &u16) -> IoResult {
 
 pub fn delete_entry_from_file_by_index(index: &u16) -> IoResult {
     let mut entries = get_entries_from_file()?;
-    entries.0.remove(*index as usize);
+    errors::check_index_bounds(index, entries.0.len())?;
+    let entry = &entries.0[*index as usize];
+    let entry_removed_msg = format!(
+        "deleted entry with content: \"{}\" at index {}",
+        entry.content, entry.index
+    );
+    entries.remove_entry_at_index(index);
     overwrite_entries_to_file(entries)?;
+    println!("{}", entry_removed_msg);
     Ok(())
 }
 
 pub fn clear_all_entries() -> IoResult {
+    if get_entries_from_file()?.0.is_empty() {
+        print_no_notes_msg();
+        return Ok(());
+    }
     let entries = Entries::empty();
     overwrite_entries_to_file(entries)?;
     Ok(())
@@ -60,6 +79,10 @@ pub fn clear_all_entries() -> IoResult {
 
 pub fn clear_from_end(range: Range) -> IoResult {
     let entries = get_entries_from_file()?.0;
+    if entries.is_empty() {
+        print_no_notes_msg();
+        return Ok(());
+    }
     let clear_n_entries =
         |x: Vec<Entry>, num: &u16| -> Vec<Entry> { x.into_iter().skip(*num as usize).collect() };
     let new_entries = Entries::from_entries(match range {
@@ -67,6 +90,10 @@ pub fn clear_from_end(range: Range) -> IoResult {
         Range::Tail(num) => clear_n_entries(entries.into_iter().rev().collect(), num),
     });
     overwrite_entries_to_file(new_entries)?;
+    Ok(())
+}
+
+pub fn yank_note(index: u16) -> IoResult {
     Ok(())
 }
 
@@ -143,11 +170,20 @@ impl Entries {
     fn empty() -> Self {
         Self(vec![])
     }
+    fn remove_entry_at_index(&mut self, index: &u16) {
+        self.0.remove(*index as usize);
+        // move all the indexes
+        let mut counter = 0;
+        self.0.iter_mut().for_each(|mut x| {
+            x.index = counter;
+            counter += 1;
+        });
+    }
 }
 
 struct Entry {
-    index: u16,
-    content: String,
+    pub index: u16,
+    pub content: String,
 }
 impl Entry {
     fn new(index: u16, content: String) -> Self {
@@ -164,8 +200,8 @@ impl Entry {
             return Err(format!("bad index number parse: {reason:?}"));
         };
         Ok(Self {
+            content: content_str.chars().skip(1).collect(),
             index: index_resp.unwrap(),
-            content: content_str.to_string(),
         })
     }
 

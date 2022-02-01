@@ -19,7 +19,8 @@ pub fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) -> HandleR
         } else if let Some(num) = index {
             file_io::view_entry_by_index(num)
         } else {
-            unreachable!();
+            let default_amount_of_notes_to_view = file_io::Range::Top(&10);
+            file_io::view_entries_from_end(default_amount_of_notes_to_view)
         }
     };
     if let Err(error) = resp {

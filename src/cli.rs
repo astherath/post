@@ -11,7 +11,7 @@ pub fn run_main() {
 
 fn handle_matches(cli: &Cli) -> HandleResult {
     match &cli.command {
-        Commands::Post { text } => handlers::handle_post(text),
+        Commands::Add { text } => handlers::handle_post(text),
         Commands::View { top, tail, index } => handlers::handle_view(top, tail, index),
         Commands::Clear { all, top, tail } => handlers::handle_clear(all, top, tail),
         Commands::Pop { index } => handlers::handle_pop(index),
@@ -37,14 +37,13 @@ struct Cli {
 enum Commands {
     /// Adds a note to the stack
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
-    Post {
+    Add {
         /// The contents of the note
         text: String,
     },
 
     /// Views the notes in the stack (if no argument given, views the lates 10 notes)
     #[clap(
-        setting(AppSettings::ArgRequiredElseHelp),
         group(
             ArgGroup::new("cmds")
             .required(false)
@@ -78,7 +77,7 @@ enum Commands {
     /// Deletes a note
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
     Delete {
-        /// Index of note to delete (if not set, deletes the latest note)
+        /// Index of note to delete
         #[clap(required = false)]
         index: u16,
     },
