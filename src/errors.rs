@@ -2,9 +2,9 @@ use clap::{Error, ErrorKind};
 use std::error::Error as ErrorTrait;
 use std::{fmt, io};
 pub type ClapError = Error;
-pub fn handle_add_entry_error(error: impl std::fmt::Debug) -> ClapError {
+pub fn handle_add_entry_error(error: impl std::fmt::Display) -> ClapError {
     let kind = ErrorKind::Io;
-    throw_clap_err(kind, &format!("{error:?}"))
+    throw_clap_err(kind, &format!("{error}"))
 }
 
 pub fn check_index_bounds(index_wanted: &u16, len_of_stack: usize) -> Result<(), String> {
@@ -15,31 +15,28 @@ pub fn check_index_bounds(index_wanted: &u16, len_of_stack: usize) -> Result<(),
     }
     Ok(())
 }
-pub fn handle_view_error(error: impl std::fmt::Debug) -> ClapError {
+pub fn handle_view_error(error: impl std::fmt::Display) -> ClapError {
     let kind = ErrorKind::Io;
-    throw_clap_err(kind, &format!("error viewing entries: {error:?}"))
+    throw_clap_err(kind, &format!("error viewing entries: {error}"))
 }
-pub fn handle_delete_error(error: impl std::fmt::Debug) -> ClapError {
+pub fn handle_delete_error(error: impl std::fmt::Display) -> ClapError {
     let kind = ErrorKind::Io;
-    throw_clap_err(kind, &format!("error deleting entry: {error:?}"))
-}
-
-pub fn handle_clear_error(error: impl std::fmt::Debug) -> ClapError {
-    let kind = ErrorKind::Io;
-    throw_clap_err(kind, &format!("error clearing entries: {error:?}"))
+    throw_clap_err(kind, &format!("error deleting entry: {error}"))
 }
 
-pub fn handle_yank_error(error: impl std::fmt::Debug) -> ClapError {
+pub fn handle_clear_error(error: impl std::fmt::Display) -> ClapError {
     let kind = ErrorKind::Io;
-    throw_clap_err(
-        kind,
-        &format!("error yanking entry to clipboard: {error:?}"),
-    )
+    throw_clap_err(kind, &format!("error clearing entries: {error}"))
 }
 
-pub fn handle_pop_error(error: impl std::fmt::Debug) -> ClapError {
+pub fn handle_yank_error(error: impl std::fmt::Display) -> ClapError {
     let kind = ErrorKind::Io;
-    throw_clap_err(kind, &format!("error popping entry: {error:?}"))
+    throw_clap_err(kind, &format!("error yanking entry to clipboard: {error}"))
+}
+
+pub fn handle_pop_error(error: impl std::fmt::Display) -> ClapError {
+    let kind = ErrorKind::Io;
+    throw_clap_err(kind, &format!("error popping entry: {error}"))
 }
 
 fn throw_clap_err(kind: ErrorKind, error_str: &str) -> ClapError {
