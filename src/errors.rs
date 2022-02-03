@@ -37,6 +37,11 @@ pub fn handle_yank_error(error: impl std::fmt::Debug) -> ClapError {
     )
 }
 
+pub fn handle_pop_error(error: impl std::fmt::Debug) -> ClapError {
+    let kind = ErrorKind::Io;
+    throw_clap_err(kind, &format!("error popping entry: {error:?}"))
+}
+
 fn throw_clap_err(kind: ErrorKind, error_str: &str) -> ClapError {
     Error::raw(kind, error_str)
 }

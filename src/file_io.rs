@@ -48,10 +48,21 @@ pub fn view_entries_from_end(range: Range) -> IoResult {
 }
 
 pub fn view_entry_by_index(index: &u16) -> IoResult {
+    let entry = find_entry_by_index(index)?;
+    print_entry_to_console(&entry);
+    Ok(())
+}
+
+fn find_entry_by_index(index: &u16) -> Result<Entry, ClapIoError> {
     let entries = get_entries_from_file()?.0;
     errors::check_index_bounds(index, entries.len())?;
-    let entry = entries.iter().find(|x| &x.index == index).unwrap();
-    print_entry_to_console(&entry);
+    let entry = entries.into_iter().find(|x| &x.index == index).unwrap();
+    Ok(entry)
+}
+
+pub fn handle_pop_entry(index: &u16) -> IoResult {
+    yank_note(index)?;
+    delete_entry_from_file_by_index(index)?;
     Ok(())
 }
 
@@ -95,7 +106,7 @@ pub fn clear_from_end(range: Range) -> IoResult {
     Ok(())
 }
 
-pub fn yank_note(_index: u16) -> IoResult {
+pub fn yank_note(index: &u16) -> IoResult {
     let mut ctx: ClipboardContext = match ClipboardProvider::new() {
         Ok(ctx) => ctx,
         Err(error) => {
@@ -104,7 +115,8 @@ pub fn yank_note(_index: u16) -> IoResult {
             )))
         }
     };
-    ctx.set_contents("TEST".to_string())?;
+    let entry = find_entry_by_index(index)?;
+    ctx.set_contents(entry.content)?;
     Ok(())
 }
 

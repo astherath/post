@@ -46,7 +46,10 @@ pub fn handle_clear(all: &bool, top: OptionNum, tail: OptionNum) -> HandleResult
     Ok(())
 }
 pub fn handle_pop(index: &u16) -> HandleResult {
-    Ok(())
+    match file_io::handle_pop_entry(index) {
+        Ok(_) => Ok(()),
+        Err(error) => Err(errors::handle_pop_error(error)),
+    }
 }
 pub fn handle_delete(index: &u16) -> HandleResult {
     match file_io::delete_entry_from_file_by_index(index) {
@@ -55,7 +58,7 @@ pub fn handle_delete(index: &u16) -> HandleResult {
     }
 }
 pub fn handle_yank(index: &u16) -> HandleResult {
-    if let Err(error) = file_io::yank_note(*index) {
+    if let Err(error) = file_io::yank_note(index) {
         return Err(errors::handle_yank_error(error));
     }
     Ok(())
