@@ -55,5 +55,8 @@ pub fn handle_delete(index: &u16) -> HandleResult {
     }
 }
 pub fn handle_yank(index: &u16) -> HandleResult {
+    if let Err(error) = file_io::yank_note(*index) {
+        return Err(errors::handle_yank_error(error));
+    }
     Ok(())
 }

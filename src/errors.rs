@@ -29,6 +29,14 @@ pub fn handle_clear_error(error: impl std::fmt::Debug) -> ClapError {
     throw_clap_err(kind, &format!("error clearing entries: {error:?}"))
 }
 
+pub fn handle_yank_error(error: impl std::fmt::Debug) -> ClapError {
+    let kind = ErrorKind::Io;
+    throw_clap_err(
+        kind,
+        &format!("error yanking entry to clipboard: {error:?}"),
+    )
+}
+
 fn throw_clap_err(kind: ErrorKind, error_str: &str) -> ClapError {
     Error::raw(kind, error_str)
 }
@@ -61,5 +69,13 @@ impl From<io::Error> for ClapIoError {
 impl From<String> for ClapIoError {
     fn from(err: String) -> Self {
         Self { desc: err }
+    }
+}
+
+impl From<Box<dyn ErrorTrait>> for ClapIoError {
+    fn from(err: Box<dyn ErrorTrait>) -> Self {
+        Self {
+            desc: format!("erroring out with {err}"),
+        }
     }
 }

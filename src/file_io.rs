@@ -1,7 +1,9 @@
 use super::errors;
+use clipboard::{ClipboardContext, ClipboardProvider};
+use errors::ClapIoError;
 use shellexpand;
 use std::path::PathBuf;
-use std::{fmt, fs, io, os};
+use std::{fmt, fs, io};
 
 type IoResult = Result<(), errors::ClapIoError>;
 
@@ -93,7 +95,16 @@ pub fn clear_from_end(range: Range) -> IoResult {
     Ok(())
 }
 
-pub fn yank_note(index: u16) -> IoResult {
+pub fn yank_note(_index: u16) -> IoResult {
+    let mut ctx: ClipboardContext = match ClipboardProvider::new() {
+        Ok(ctx) => ctx,
+        Err(error) => {
+            return Err(ClapIoError::from(format!(
+                "Copying note text to clipboard failed: {error}"
+            )))
+        }
+    };
+    ctx.set_contents("TEST".to_string())?;
     Ok(())
 }
 
