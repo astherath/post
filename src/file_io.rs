@@ -80,16 +80,18 @@ pub fn delete_entry_from_file_by_index(index: &u16) -> IoResult {
 pub fn clear_all_entries() -> IoResult {
     // should be able to clear even if file is corrupted
     let entries_resp = get_entries_from_file();
-    if entries_resp
-        .is_ok()
-        .then(|| entries_resp.unwrap().0.is_empty())
-        .is_some()
-    {
-        print_no_notes_msg();
-        return Ok(());
+    let mut msg = "reformatted data file and cleared all entries".to_string();
+    if let Ok(entries) = entries_resp {
+        if entries.0.is_empty() {
+            print_no_notes_msg();
+            return Ok(());
+        } else {
+            msg = format!("cleared {} entries from file", entries.0.len());
+        }
     }
     let entries = Entries::empty();
     overwrite_entries_to_file(entries)?;
+    println!("{}", msg);
     Ok(())
 }
 
@@ -219,7 +221,7 @@ impl Entry {
     fn from_str(data: &str) -> Result<Self, String> {
         let char_index_resp = data.chars().position(|c| c == '|');
         if char_index_resp.is_none() {
-            return Err("line is not in valid format, ensure config file is correct".to_string());
+            return Err("entry data is not in valid format; reformat file with \"clear --all\" and try again".to_string());
         }
         let (index_str, content_str) = data.split_at(char_index_resp.unwrap());
         let index_resp = index_str.parse::<u16>();
