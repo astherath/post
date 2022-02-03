@@ -1,7 +1,7 @@
 use super::errors;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use errors::ClapIoError;
-use shellexpand;
+
 use std::path::PathBuf;
 use std::{fmt, fs, io};
 
@@ -38,7 +38,7 @@ pub fn view_entries_from_end(range: Range) -> IoResult {
     let print_n_to_console = |x: Vec<Entry>, num: &u16| {
         x.iter()
             .take(*num as usize)
-            .for_each(|y| print_entry_to_console(y))
+            .for_each(print_entry_to_console)
     };
     match range {
         Range::Top(num) => print_n_to_console(entries, num),
@@ -121,7 +121,7 @@ pub fn yank_note(index: &u16) -> IoResult {
 }
 
 fn overwrite_entries_to_file(entries: Entries) -> IoResult {
-    let all_entries_to_str = entries.to_output_string();
+    let all_entries_to_str = entries.into_output_string();
     write_raw_text_to_file(&all_entries_to_str)?;
     Ok(())
 }
@@ -183,10 +183,10 @@ impl Entries {
         let entry = Entry::new(index as u16, entry_text.to_string());
         self.0.push(entry);
     }
-    fn to_output_string(self) -> String {
+    fn into_output_string(self) -> String {
         self.0
             .into_iter()
-            .map(|x| x.to_output_string())
+            .map(|x| x.into_output_string())
             .collect::<Vec<String>>()
             .join("\n")
     }
@@ -214,7 +214,7 @@ impl Entry {
     }
     fn from_str(data: &str) -> Result<Self, String> {
         let char_index_resp = data.chars().position(|c| c == '|');
-        if let None = char_index_resp {
+        if char_index_resp.is_none() {
             return Err("line is not in valid format, ensure config file is correct".to_string());
         }
         let (index_str, content_str) = data.split_at(char_index_resp.unwrap());
@@ -228,7 +228,7 @@ impl Entry {
         })
     }
 
-    fn to_output_string(self) -> String {
+    fn into_output_string(self) -> String {
         format!("{}|{}", self.index, self.content)
     }
 }
