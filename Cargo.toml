@@ -1,7 +1,17 @@
 [package]
-name = "post"
-version = "0.1.0"
+name = "post-it"
+version = "1.0.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "A minimalist list-based note taking tool to act as your terminal's post-it notes"
+readme = "README.md"
+repository = "https://github.com/astherath/post"
+keywords = ["cli", "command-line", "notes"]
+categories = ["command-line-utilities", "notes"]
+
+[[bin]]
+name = "post"
+path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

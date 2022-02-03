@@ -309,8 +309,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "post"
-version = "0.1.0"
+name = "post-it"
+version = "1.0.0"
 dependencies = [
  "clap",
  "clipboard",

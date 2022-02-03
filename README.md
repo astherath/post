@@ -1,47 +1,102 @@
-## post
+## 📝 📋 post 
 
-Example usage:
+A minimalist note taking tool to keep clipboard crumbs - a post-it note for your terminal
 
-```bash
-post "note text"
-> posted !
+# Table of contents
 
-post view
-> entry 0
-> entry 1
-> ...
-> entry 10
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Common usage example](#common-usage-example)
 
-post view --top=2
-> entry 0
-> entry 1
+# Installation
 
-post view --tail=2
-> entry n-1
-> entry n
+- Install from [crates.io](https://crates.io/crates/post-it)
 
-post yank 
-> yanked entry 0 to clipboard
+    - `cargo install post-it`
 
-post yank [--target, -t] 2
-> yanked entry 2 to clipboard
+- Build manually from source
+    ```sh
+    $ git clone https://github.com/astherath/post
+    $ cd post
+    $ cargo install --path=.
+    ```
 
-post pop [--target, -t] 2
-> yanked and deleted entry 2 to clipboard
+# Usage
 
-post delete [--target, -t] 2
-> deleted entry 2
+`post` works best with single line notes and other small strings
 
-post clear
-> deleted all entries
+```
+post 1.0.0
+a simple cli to keep and move notes in/out of the clipboard
 
-post clear --top=3
-> deleted the latest 3 entries
+USAGE:
+    post <SUBCOMMAND>
 
-post clear --tail=3
-> deleted the oldest 3 entries
+OPTIONS:
+    -h, --help
+            Print help information
+
+    -V, --version
+            Print version information
+
+SUBCOMMANDS:
+    add
+            Adds a note to the stack
+    clear
+            Deletes many notes at once
+    delete
+            Deletes a note
+    help
+            Print this message or the help of the given subcommand(s)
+    pop
+            Yanks the contents of a note and then deletes it
+    view
+            Views the notes in the stack (if no argument given, views the lates 10 notes)
+    yank
+            Copies the text from a note onto the clipboard
 
 ```
 
+## Common usage example
 
+```bash
+# we can add notes with "add"
+post add "this is my first note"
+> added note to position "0"
 
+# "view" defaults to showing the latest 10 notes
+post view
+> 0 | this is my first note
+
+# we can add multiple notes and track their index
+post add "another note"
+> added note to position "1"
+
+post view
+> 0 | this is my first note
+> 1 | another note
+
+# top and tail flags change the starting point
+post view --top=1
+> 0 | this is my first note
+
+post view --tail=1
+> 1 | another note
+
+# yank the note content at the given index to the clipboard
+post yank 0
+> yanked entry at index 0
+
+# delete removes the note from the tracking table
+post delete 0
+> deleted entry at index 0
+
+# pop is shorthand for yank + delete a note
+post pop 0
+> yanked entry at index 0
+> deleted entry at index 0
+
+# clear allows for bulk note removal
+post clear --all
+> cleared 1 entries from file
+```

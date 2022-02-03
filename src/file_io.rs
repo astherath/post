@@ -10,7 +10,7 @@ type IoResult = Result<(), errors::ClapIoError>;
 pub fn add_entry(text: &str) -> IoResult {
     let mut entries = get_entries_from_file()?;
     entries.add_entry_from_str(text);
-    println!("added note to position \"{}\"", entries.0.len());
+    println!("added note to position \"{}\"", entries.0.len() - 1);
     overwrite_entries_to_file(entries)?;
     Ok(())
 }
@@ -101,13 +101,16 @@ pub fn clear_from_end(range: Range) -> IoResult {
         print_no_notes_msg();
         return Ok(());
     }
+    let initial_len = entries.len();
     let clear_n_entries =
         |x: Vec<Entry>, num: &u16| -> Vec<Entry> { x.into_iter().skip(*num as usize).collect() };
     let new_entries = Entries::from_entries(match range {
         Range::Top(num) => clear_n_entries(entries, num),
         Range::Tail(num) => clear_n_entries(entries.into_iter().rev().collect(), num),
     });
+    let amount_of_removed_entries = initial_len - new_entries.0.len();
     overwrite_entries_to_file(new_entries)?;
+    println!("cleared {} entries from file", amount_of_removed_entries);
     Ok(())
 }
 
