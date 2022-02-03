@@ -78,7 +78,13 @@ pub fn delete_entry_from_file_by_index(index: &u16) -> IoResult {
 }
 
 pub fn clear_all_entries() -> IoResult {
-    if get_entries_from_file()?.0.is_empty() {
+    // should be able to clear even if file is corrupted
+    let entries_resp = get_entries_from_file();
+    if entries_resp
+        .is_ok()
+        .then(|| entries_resp.unwrap().0.is_empty())
+        .is_some()
+    {
         print_no_notes_msg();
         return Ok(());
     }
