@@ -70,10 +70,7 @@ pub fn delete_entry_from_file_by_index(index: &u16) -> IoResult {
     let mut entries = get_entries_from_file()?;
     errors::check_index_bounds(index, entries.0.len())?;
     let entry = &entries.0[*index as usize];
-    let entry_removed_msg = format!(
-        "deleted entry with content: \"{}\" at index {}",
-        entry.content, entry.index
-    );
+    let entry_removed_msg = format!("deleted entry at index {}", entry.index);
     entries.remove_entry_at_index(index);
     overwrite_entries_to_file(entries)?;
     println!("{}", entry_removed_msg);
@@ -117,6 +114,7 @@ pub fn yank_note(index: &u16) -> IoResult {
     };
     let entry = find_entry_by_index(index)?;
     ctx.set_contents(entry.content)?;
+    println!("yanked entry at index {}", entry.index);
     Ok(())
 }
 
