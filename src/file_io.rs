@@ -35,14 +35,18 @@ pub fn view_entries_from_end(range: Range) -> IoResult {
         return Ok(());
     }
 
-    let print_n_to_console = |x: Vec<Entry>, num: &u16| {
-        x.iter()
-            .take(*num as usize)
-            .for_each(print_entry_to_console)
-    };
+    let print_to_console = |x: Vec<Entry>| x.iter().for_each(print_entry_to_console);
     match range {
-        Range::Top(num) => print_n_to_console(entries, num),
-        Range::Tail(num) => print_n_to_console(entries.into_iter().rev().collect(), num),
+        Range::Top(num) => print_to_console(entries.into_iter().take(*num as usize).collect()),
+        Range::Tail(num) => {
+            let tail_entries = entries
+                .into_iter()
+                .rev()
+                .take(*num as usize)
+                .rev()
+                .collect();
+            print_to_console(tail_entries);
+        }
     }
     Ok(())
 }
