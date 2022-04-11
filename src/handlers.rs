@@ -10,19 +10,25 @@ pub fn handle_post(text: &str) -> HandleResult {
     Ok(())
 }
 
-pub fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum, all: &bool) -> HandleResult {
+pub fn handle_view(
+    top: OptionNum,
+    tail: OptionNum,
+    index: OptionNum,
+    all: &bool,
+    no_fmt: &bool,
+) -> HandleResult {
     let resp = {
         if *all {
-            file_io::view_all_entries()
+            file_io::view_all_entries(*no_fmt)
         } else if let Some(num) = top {
-            file_io::view_entries_from_end(file_io::Range::Top(num))
+            file_io::view_entries_from_end(file_io::Range::Top(num), *no_fmt)
         } else if let Some(num) = tail {
-            file_io::view_entries_from_end(file_io::Range::Tail(num))
+            file_io::view_entries_from_end(file_io::Range::Tail(num), *no_fmt)
         } else if let Some(num) = index {
-            file_io::view_entry_by_index(num)
+            file_io::view_entry_by_index(num, *no_fmt)
         } else {
             let default_amount_of_notes_to_view = file_io::Range::Top(&10);
-            file_io::view_entries_from_end(default_amount_of_notes_to_view)
+            file_io::view_entries_from_end(default_amount_of_notes_to_view, *no_fmt)
         }
     };
     if let Err(error) = resp {

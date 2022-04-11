@@ -15,8 +15,11 @@ pub fn add_entry(text: &str) -> IoResult {
     Ok(())
 }
 
-fn print_entry_to_console(entry: &Entry) {
-    println!("{entry}")
+fn print_entry_to_console(entry: &Entry, no_fmt: bool) {
+    match no_fmt {
+        false => println!("{}", entry),
+        true => println!("{:#?}", entry),
+    }
 }
 
 pub enum Range<'a> {
@@ -28,14 +31,14 @@ fn print_no_notes_msg() {
     println!("(no notes to view! add one first with \"post\")");
 }
 
-pub fn view_entries_from_end(range: Range) -> IoResult {
+pub fn view_entries_from_end(range: Range, no_fmt: bool) -> IoResult {
     let entries = get_entries_from_file()?.0;
     if entries.is_empty() {
         print_no_notes_msg();
         return Ok(());
     }
 
-    let print_to_console = |x: Vec<Entry>| x.iter().for_each(print_entry_to_console);
+    let print_to_console = |x: Vec<Entry>| x.iter().for_each(|x| print_entry_to_console(x, no_fmt));
     match range {
         Range::Top(num) => print_to_console(entries.into_iter().take(*num as usize).collect()),
         Range::Tail(num) => {
@@ -51,17 +54,17 @@ pub fn view_entries_from_end(range: Range) -> IoResult {
     Ok(())
 }
 
-pub fn view_all_entries() -> IoResult {
+pub fn view_all_entries(no_fmt: bool) -> IoResult {
     get_entries_from_file()?
         .0
         .iter()
-        .for_each(print_entry_to_console);
+        .for_each(|x| print_entry_to_console(x, no_fmt));
     Ok(())
 }
 
-pub fn view_entry_by_index(index: &u16) -> IoResult {
+pub fn view_entry_by_index(index: &u16, no_fmt: bool) -> IoResult {
     let entry = find_entry_by_index(index)?;
-    print_entry_to_console(&entry);
+    print_entry_to_console(&entry, no_fmt);
     Ok(())
 }
 
@@ -256,5 +259,10 @@ impl Entry {
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} | {}", self.index, self.content)
+    }
+}
+impl fmt::Debug for Entry {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.content)
     }
 }

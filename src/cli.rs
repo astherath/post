@@ -17,7 +17,8 @@ fn handle_matches(cli: &Cli) -> HandleResult {
             tail,
             index,
             all,
-        } => handlers::handle_view(top, tail, index, all),
+            no_fmt,
+        } => handlers::handle_view(top, tail, index, all, no_fmt),
         Commands::Clear { all, top, tail } => handlers::handle_clear(all, top, tail),
         Commands::Pop { index } => handlers::handle_pop(index),
         Commands::Yank { index } => handlers::handle_yank(index),
@@ -57,6 +58,9 @@ enum Commands {
         /// If set, views ALL notes
         #[clap(long)]
         all: bool,
+        /// If set, displays the notes in a machine-friendly no format way
+        #[clap(long)]
+        no_fmt: bool,
         /// Index of note to view
         #[clap(long, required = false)]
         index: Option<u16>,
