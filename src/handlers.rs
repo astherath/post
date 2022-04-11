@@ -10,9 +10,11 @@ pub fn handle_post(text: &str) -> HandleResult {
     Ok(())
 }
 
-pub fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum) -> HandleResult {
+pub fn handle_view(top: OptionNum, tail: OptionNum, index: OptionNum, all: &bool) -> HandleResult {
     let resp = {
-        if let Some(num) = top {
+        if *all {
+            file_io::view_all_entries()
+        } else if let Some(num) = top {
             file_io::view_entries_from_end(file_io::Range::Top(num))
         } else if let Some(num) = tail {
             file_io::view_entries_from_end(file_io::Range::Tail(num))

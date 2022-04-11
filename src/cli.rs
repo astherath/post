@@ -12,7 +12,12 @@ pub fn run_main() {
 fn handle_matches(cli: &Cli) -> HandleResult {
     match &cli.command {
         Commands::Add { text } => handlers::handle_post(text),
-        Commands::View { top, tail, index } => handlers::handle_view(top, tail, index),
+        Commands::View {
+            top,
+            tail,
+            index,
+            all,
+        } => handlers::handle_view(top, tail, index, all),
         Commands::Clear { all, top, tail } => handlers::handle_clear(all, top, tail),
         Commands::Pop { index } => handlers::handle_pop(index),
         Commands::Yank { index } => handlers::handle_yank(index),
@@ -47,8 +52,11 @@ enum Commands {
         group(
             ArgGroup::new("cmds")
             .required(false)
-            .args(&["top", "tail", "index"])))]
+            .args(&["top", "tail", "index", "all"])))]
     View {
+        /// If set, views ALL notes
+        #[clap(long)]
+        all: bool,
         /// Index of note to view
         #[clap(long, required = false)]
         index: Option<u16>,

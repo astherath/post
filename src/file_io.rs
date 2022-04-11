@@ -51,6 +51,14 @@ pub fn view_entries_from_end(range: Range) -> IoResult {
     Ok(())
 }
 
+pub fn view_all_entries() -> IoResult {
+    get_entries_from_file()?
+        .0
+        .iter()
+        .for_each(print_entry_to_console);
+    Ok(())
+}
+
 pub fn view_entry_by_index(index: &u16) -> IoResult {
     let entry = find_entry_by_index(index)?;
     print_entry_to_console(&entry);
