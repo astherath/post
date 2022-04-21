@@ -7,9 +7,9 @@ use std::{fmt, fs, io};
 
 type IoResult = Result<(), errors::ClapIoError>;
 
-pub fn add_entry(text: &str, comment: Option<&str>) -> IoResult {
+pub fn add_entry(text: &str, comment: Option<String>) -> IoResult {
     let mut entries = get_entries_from_file()?;
-    entries.add_entry_from_str(text);
+    entries.add_entry_from_str(text, comment);
     println!("added note to position \"{}\"", entries.0.len() - 1);
     overwrite_entries_to_file(entries)?;
     Ok(())
@@ -202,13 +202,7 @@ impl Entries {
     fn from_entries(entries: Vec<Entry>) -> Self {
         Self(entries)
     }
-    fn add_entry_from_str(&mut self, entry_text: &str) {
-        let index = self.0.len();
-        let entry = Entry::new(index as u16, entry_text.to_string());
-        self.0.push(entry);
-    }
-
-    fn add_entry_from_str_with_comment(&mut self, entry_text: &str, comment: Option<&str>) {
+    fn add_entry_from_str(&mut self, entry_text: &str, comment: Option<String>) {
         let index = self.0.len();
         let entry = Entry::new(index as u16, entry_text.to_string(), comment);
         self.0.push(entry);
@@ -262,12 +256,11 @@ impl Entry {
         };
 
         let comment = {
-            let comment_char_index = data.chars().position(|c| c == '¦');
-            if comment_char_index.is_none() {
-                None
+            if let Some(comment_char_index) = data.chars().position(|c| c == '¦') {
+                let (_, comment_string) = data.split_at(comment_char_index);
+                Some(comment_string.chars().skip(1).collect())
             } else {
-                let (_, comment_string) = data.split_at(comment_char_index.unwrap());
-                Some(comment_string.to_string())
+                None
             }
         };
 
@@ -279,12 +272,23 @@ impl Entry {
     }
 
     fn into_output_string(self) -> String {
-        format!("{}|{}", self.index, self.content)
+        let comment_string = {
+            if self.comment.is_some() {
+                format!("¦{}", &self.comment.unwrap())
+            } else {
+                "".to_string()
+            }
+        };
+        format!("{}|{}{}", self.index, self.content, comment_string)
     }
 }
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} | {}", self.index, self.content)
+        let comment_string = match &self.comment {
+            Some(comment_str) => format!("# {}", comment_str),
+            None => "".to_string(),
+        };
+        write!(f, "{} | {}{}", self.index, self.content, comment_string)
     }
 }
 impl fmt::Debug for Entry {

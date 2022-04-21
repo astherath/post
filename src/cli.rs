@@ -11,7 +11,7 @@ pub fn run_main() {
 
 fn handle_matches(cli: &Cli) -> HandleResult {
     match &cli.command {
-        Commands::Add { text, comment } => handlers::handle_post(text, comment),
+        Commands::Add { text, comment } => handlers::handle_post(text, comment.clone()),
         Commands::View {
             top,
             tail,
