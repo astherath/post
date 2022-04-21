@@ -1,4 +1,4 @@
-## 📝 📋 post 
+## 📝 📋 post
 
 A minimalist note taking tool to keep clipboard crumbs - a post-it note for your terminal
 
@@ -26,7 +26,7 @@ A minimalist note taking tool to keep clipboard crumbs - a post-it note for your
 `post` works best with single line notes and other small strings
 
 ```
-post 1.0.0
+post 3.0.0
 a simple cli to keep and move notes in/out of the clipboard
 
 USAGE:
@@ -54,7 +54,6 @@ SUBCOMMANDS:
             Views the notes in the stack (if no argument given, views the lates 10 notes)
     yank
             Copies the text from a note onto the clipboard
-
 ```
 
 ## Common usage example
