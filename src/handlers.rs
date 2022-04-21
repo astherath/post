@@ -3,8 +3,8 @@ use crate::{errors, file_io};
 pub type OptionNum<'a> = &'a Option<u16>;
 pub type HandleResult = Result<(), errors::ClapError>;
 
-pub fn handle_post(text: &str) -> HandleResult {
-    if let Err(error) = file_io::add_entry(text) {
+pub fn handle_post(text: &str, comment: Option<&str>) -> HandleResult {
+    if let Err(error) = file_io::add_entry(text, comment) {
         return Err(errors::handle_add_entry_error(error));
     }
     Ok(())

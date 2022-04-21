@@ -11,7 +11,7 @@ pub fn run_main() {
 
 fn handle_matches(cli: &Cli) -> HandleResult {
     match &cli.command {
-        Commands::Add { text } => handlers::handle_post(text),
+        Commands::Add { text, comment } => handlers::handle_post(text, comment),
         Commands::View {
             top,
             tail,
@@ -46,6 +46,9 @@ enum Commands {
     Add {
         /// The contents of the note
         text: String,
+        /// If set, adds a comment
+        #[clap(long, short = 'c')]
+        comment: Option<String>,
     },
 
     /// Views the notes in the stack (if no argument given, views the lates 10 notes)
