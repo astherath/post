@@ -7,7 +7,7 @@ use std::{fmt, fs, io};
 
 type IoResult = Result<(), errors::ClapIoError>;
 
-pub fn add_entry(text: &str) -> IoResult {
+pub fn add_entry(text: &str, comment: Option<&str>) -> IoResult {
     let mut entries = get_entries_from_file()?;
     entries.add_entry_from_str(text);
     println!("added note to position \"{}\"", entries.0.len() - 1);
@@ -207,6 +207,13 @@ impl Entries {
         let entry = Entry::new(index as u16, entry_text.to_string());
         self.0.push(entry);
     }
+
+    fn add_entry_from_str_with_comment(&mut self, entry_text: &str, comment: Option<&str>) {
+        let index = self.0.len();
+        let entry = Entry::new(index as u16, entry_text.to_string(), comment);
+        self.0.push(entry);
+    }
+
     fn into_output_string(self) -> String {
         self.0
             .into_iter()
@@ -231,11 +238,18 @@ impl Entries {
 struct Entry {
     pub index: u16,
     pub content: String,
+    pub comment: Option<String>,
 }
+
 impl Entry {
-    fn new(index: u16, content: String) -> Self {
-        Self { index, content }
+    fn new(index: u16, content: String, comment: Option<String>) -> Self {
+        Self {
+            index,
+            content,
+            comment,
+        }
     }
+
     fn from_str(data: &str) -> Result<Self, String> {
         let char_index_resp = data.chars().position(|c| c == '|');
         if char_index_resp.is_none() {
@@ -246,9 +260,21 @@ impl Entry {
         if let Err(reason) = index_resp {
             return Err(format!("bad index number parse: {reason:?}"));
         };
+
+        let comment = {
+            let comment_char_index = data.chars().position(|c| c == '¦');
+            if comment_char_index.is_none() {
+                None
+            } else {
+                let (_, comment_string) = data.split_at(comment_char_index.unwrap());
+                Some(comment_string.to_string())
+            }
+        };
+
         Ok(Self {
             content: content_str.chars().skip(1).collect(),
             index: index_resp.unwrap(),
+            comment,
         })
     }
 
