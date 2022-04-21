@@ -254,18 +254,20 @@ impl Entry {
         if let Err(reason) = index_resp {
             return Err(format!("bad index number parse: {reason:?}"));
         };
+        let main_string: String = content_str.chars().skip(1).collect();
+        let content_string: String;
+        let mut comment: Option<String> = None;
 
-        let comment = {
-            if let Some(comment_char_index) = data.chars().position(|c| c == '¦') {
-                let (_, comment_string) = data.split_at(comment_char_index);
-                Some(comment_string.chars().skip(1).collect())
-            } else {
-                None
-            }
-        };
+        if let Some(index) = main_string.chars().position(|c| c == '¦') {
+            let (content_str, comment_str) = main_string.split_at(index);
+            comment = Some(comment_str.chars().skip(1).collect());
+            content_string = content_str.to_string();
+        } else {
+            content_string = main_string;
+        }
 
         Ok(Self {
-            content: content_str.chars().skip(1).collect(),
+            content: content_string,
             index: index_resp.unwrap(),
             comment,
         })
@@ -285,10 +287,10 @@ impl Entry {
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let comment_string = match &self.comment {
-            Some(comment_str) => format!("# {}", comment_str),
+            Some(comment_str) => format!("\t# {}", comment_str),
             None => "".to_string(),
         };
-        write!(f, "{} | {}{}", self.index, self.content, comment_string)
+        write!(f, "{:<3}| {}{}", self.index, self.content, comment_string)
     }
 }
 impl fmt::Debug for Entry {
