@@ -38,6 +38,10 @@ pub fn handle_pop_error(error: impl std::fmt::Display) -> ClapError {
     let kind = ErrorKind::Io;
     throw_clap_err(kind, &format!("error popping entry: {error}"))
 }
+pub fn handle_backup_error(error: impl std::fmt::Display) -> ClapError {
+    let kind = ErrorKind::Io;
+    throw_clap_err(kind, &format!("error backing up data file: {error}"))
+}
 
 fn throw_clap_err(kind: ErrorKind, error_str: &str) -> ClapError {
     Error::raw(kind, error_str)

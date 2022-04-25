@@ -1,4 +1,5 @@
 use crate::{errors, file_io};
+use std::path::Path;
 
 pub type OptionNum<'a> = &'a Option<u16>;
 pub type HandleResult = Result<(), errors::ClapError>;
@@ -57,6 +58,12 @@ pub fn handle_pop(index: &u16) -> HandleResult {
     match file_io::handle_pop_entry(index) {
         Ok(_) => Ok(()),
         Err(error) => Err(errors::handle_pop_error(error)),
+    }
+}
+pub fn handle_backup(path: &Path) -> HandleResult {
+    match file_io::backup_data_file(path) {
+        Ok(_) => Ok(()),
+        Err(error) => Err(errors::handle_backup_error(error)),
     }
 }
 pub fn handle_delete(index: &u16) -> HandleResult {

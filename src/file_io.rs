@@ -2,7 +2,7 @@ use super::errors;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use errors::ClapIoError;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{fmt, fs, io};
 
 type IoResult = Result<(), errors::ClapIoError>;
@@ -144,7 +144,7 @@ pub fn yank_note(index: &u16) -> IoResult {
     Ok(())
 }
 
-pub fn backup_data_file(dest_path: PathBuf) -> IoResult {
+pub fn backup_data_file(dest_path: &Path) -> IoResult {
     if !check_if_file_exists() {
         print_no_notes_msg();
         return Ok(());
@@ -156,8 +156,8 @@ pub fn backup_data_file(dest_path: PathBuf) -> IoResult {
         )));
     }
 
-    fs::copy(get_file_path(), &dest_path)?;
-    println!("backup to {:#?} complete", &dest_path);
+    fs::copy(get_file_path(), dest_path)?;
+    println!("backup to {:#?} complete", dest_path);
     Ok(())
 }
 
