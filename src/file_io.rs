@@ -2,7 +2,7 @@ use super::errors;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use errors::ClapIoError;
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::{fmt, fs, io};
 
 type IoResult = Result<(), errors::ClapIoError>;
@@ -144,20 +144,21 @@ pub fn yank_note(index: &u16) -> IoResult {
     Ok(())
 }
 
-pub fn backup_data_file(dest_path: &Path) -> IoResult {
+pub fn backup_data_file(dest_path: &mut PathBuf) -> IoResult {
     if !check_if_file_exists() {
         print_no_notes_msg();
         return Ok(());
     }
-    if !dest_path.exists() {
+    if !dest_path.is_dir() {
         return Err(ClapIoError::from(format!(
             "Backup of data file failed: {}",
             "destination path does not exist"
         )));
     }
-
+    dest_path.push(format!("backup-{}-{}", get_date(), get_filename()));
+    let success_string = format!("backup to {:#?} complete", &dest_path);
     fs::copy(get_file_path(), dest_path)?;
-    println!("backup to {:#?} complete", dest_path);
+    println!("{}", success_string);
     Ok(())
 }
 
@@ -204,9 +205,17 @@ fn create_dir_if_none_exists() -> io::Result<()> {
 
 fn get_file_path() -> PathBuf {
     let mut path = get_dir_path();
-    let filename = "notes.txt";
+    let filename = get_filename();
     path.push(PathBuf::from(filename));
     path
+}
+
+fn get_date() -> String {
+    format!("{}", chrono::offset::Local::now())
+}
+
+fn get_filename() -> &'static str {
+    "notes.txt"
 }
 
 fn get_dir_path() -> PathBuf {

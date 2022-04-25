@@ -1,5 +1,5 @@
 use crate::{errors, file_io};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub type OptionNum<'a> = &'a Option<u16>;
 pub type HandleResult = Result<(), errors::ClapError>;
@@ -61,7 +61,8 @@ pub fn handle_pop(index: &u16) -> HandleResult {
     }
 }
 pub fn handle_backup(path: &Path) -> HandleResult {
-    match file_io::backup_data_file(path) {
+    let mut dest_path = PathBuf::from(path);
+    match file_io::backup_data_file(&mut dest_path) {
         Ok(_) => Ok(()),
         Err(error) => Err(errors::handle_backup_error(error)),
     }
