@@ -144,6 +144,23 @@ pub fn yank_note(index: &u16) -> IoResult {
     Ok(())
 }
 
+pub fn backup_data_file(dest_path: PathBuf) -> IoResult {
+    if !check_if_file_exists() {
+        print_no_notes_msg();
+        return Ok(());
+    }
+    if !dest_path.exists() {
+        return Err(ClapIoError::from(format!(
+            "Backup of data file failed: {}",
+            "destination path does not exist"
+        )));
+    }
+
+    fs::copy(get_file_path(), &dest_path)?;
+    println!("backup to {:#?} complete", &dest_path);
+    Ok(())
+}
+
 fn overwrite_entries_to_file(entries: Entries) -> IoResult {
     let all_entries_to_str = entries.into_output_string();
     write_raw_text_to_file(&all_entries_to_str)?;

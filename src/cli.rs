@@ -1,5 +1,6 @@
 use crate::handlers::{self, HandleResult};
-use clap::{AppSettings, ArgGroup, IntoApp, Parser, Subcommand};
+use clap::{AppSettings, ArgGroup, IntoApp, Parser, Subcommand, ValueHint};
+use std::path::PathBuf;
 
 pub fn run_main() {
     let args = Cli::parse();
@@ -23,6 +24,7 @@ fn handle_matches(cli: &Cli) -> HandleResult {
         Commands::Pop { index } => handlers::handle_pop(index),
         Commands::Yank { index } => handlers::handle_yank(index),
         Commands::Delete { index } => handlers::handle_delete(index),
+        Commands::Backup { path } => handlers::handle_backup(path),
     }
 }
 
@@ -95,6 +97,13 @@ enum Commands {
         /// Index of note to delete
         #[clap(required = false)]
         index: u16,
+    },
+    /// Creates a backup for the data file at the given path
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    Backup {
+        /// Path to directory where the data will be copied to
+        #[clap(value_hint = ValueHint::DirPath)]
+        path: PathBuf,
     },
     /// Deletes many notes at once
     #[clap(setting(AppSettings::ArgRequiredElseHelp),
