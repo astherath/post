@@ -55,8 +55,12 @@ pub fn view_entries_from_end(range: Range, no_fmt: bool) -> IoResult {
 }
 
 pub fn view_all_entries(no_fmt: bool) -> IoResult {
-    get_entries_from_file()?
-        .0
+    let entries = get_entries_from_file()?.0;
+    if entries.is_empty() {
+        print_no_notes_msg();
+        return Ok(());
+    }
+    entries
         .iter()
         .for_each(|x| print_entry_to_console(x, no_fmt));
     Ok(())
@@ -169,6 +173,9 @@ fn overwrite_entries_to_file(entries: Entries) -> IoResult {
 }
 
 fn get_entries_from_file() -> Result<Entries, errors::ClapIoError> {
+    if !check_if_file_exists() {
+        create_dir_and_empty_file()?;
+    }
     let mut entries = vec![];
     for entry in get_lines_from_file()?.iter() {
         let parse_response = Entry::from_str(entry)?;
@@ -186,9 +193,18 @@ fn get_lines_from_file() -> io::Result<Vec<String>> {
     Ok(lines)
 }
 
+fn create_dir_and_empty_file() -> IoResult {
+    // we can move this use into here because large import and rarely called
+    use std::io::prelude::*;
+    create_dir_if_none_exists()?;
+    let mut file = fs::File::create(get_file_path())?;
+    file.write_all("".as_bytes())?;
+    Ok(())
+}
+
 fn write_raw_text_to_file(text: &str) -> IoResult {
     if !check_if_file_exists() {
-        create_dir_if_none_exists()?;
+        create_dir_and_empty_file()?;
     }
     Ok(fs::write(get_file_path(), text)?)
 }
