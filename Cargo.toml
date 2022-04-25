@@ -1,13 +1,13 @@
 [package]
 name = "post-it"
-version = "3.0.0"
+version = "3.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "A minimalist list-based note taking tool to act as your terminal's post-it notes"
 readme = "README.md"
 repository = "https://github.com/astherath/post"
 keywords = ["cli", "command-line", "notes"]
-categories = ["command-line-utilities", "notes"]
+categories = ["command-line-utilities"]
 
 [[bin]]
 name = "post"
